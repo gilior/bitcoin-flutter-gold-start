@@ -35,10 +35,8 @@ const bitcoinAverageURL =
     'https://apiv2.bitcoinaverage.com/indices/global/ticker';
 
 class CoinData {
-  Future getCoinData(String selectedCurrency) async {
-    //TODO 4: Use a for loop here to loop through the cryptoList and request the data for each of them in turn.
-    //TODO 5: Return a Map of the results instead of a single value.
-    String requestURL = '$bitcoinAverageURL/BTC$selectedCurrency';
+  Future getCoinData(crypto_coin, String selectedCurrency) async {
+    String requestURL = '$bitcoinAverageURL/$crypto_coin$selectedCurrency';
     http.Response response = await http.get(requestURL);
     if (response.statusCode == 200) {
       var decodedData = jsonDecode(response.body);

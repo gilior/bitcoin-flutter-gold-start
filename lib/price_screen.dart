@@ -10,6 +10,33 @@ class PriceScreen extends StatefulWidget {
 
 class _PriceScreenState extends State<PriceScreen> {
   String selectedCurrency = 'AUD';
+  Map<String, String> value_for_coin = Map();
+
+  _PriceScreenState() {
+    init_crypto_list();
+  }
+
+  void init_crypto_list() {
+    cryptoList.forEach((foo) {
+      value_for_coin[foo] = '?';
+    });
+  }
+
+  foo() {
+    List<Widget> column_widgets = cryptoList.map((crypto_coin) {
+      return buildPadding(crypto_coin);
+    }).toList();
+    column_widgets.add(Padding(
+        padding: EdgeInsets.all(0),
+        child: Container(
+          height: 150.0,
+          alignment: Alignment.center,
+          padding: EdgeInsets.only(bottom: 30.0),
+          color: Colors.lightBlue,
+          child: Platform.isIOS ? iOSPicker() : androidDropdown(),
+        )));
+    return column_widgets;
+  }
 
   DropdownButton<String> androidDropdown() {
     List<DropdownMenuItem<String>> dropdownItems = [];
@@ -45,7 +72,7 @@ class _PriceScreenState extends State<PriceScreen> {
       onSelectedItemChanged: (selectedIndex) {
         setState(() {
           selectedCurrency = currenciesList[selectedIndex];
-          getData();
+//          getData();
         });
       },
       children: pickerItems,
@@ -54,27 +81,27 @@ class _PriceScreenState extends State<PriceScreen> {
 
   String value = '?';
 
-  //TODO 7: Figure out a way of displaying a '?' on screen while we're waiting for the price data to come back. Hint: You'll need a ternary operator.
-
-  //TODO 6: Update this method to receive a Map containing the crypto:price key value pairs. Then use that map to update the CryptoCards.
-  void getData() async {
+  void getData() {
     try {
-      double data = await CoinData().getCoinData(selectedCurrency);
-      setState(() {
-        value = data.toStringAsFixed(0);
+      value_for_coin.keys.forEach((coin) async {
+        double data = await CoinData().getCoinData(coin, selectedCurrency);
+        setState(() {
+          value_for_coin[coin] = data.toStringAsFixed(0);
+          print(value_for_coin);
+        });
       });
     } catch (e) {
       print(e);
     }
   }
 
+//  List<Widget> column_widgets = List<Widget>();
+
   @override
   void initState() {
     super.initState();
-    getData();
+//    getData('BTC');
   }
-
-  //TODO: For bonus points, create a method that loops through the cryptoList and generates a CryptoCard for each.
 
   @override
   Widget build(BuildContext context) {
@@ -85,39 +112,32 @@ class _PriceScreenState extends State<PriceScreen> {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          //TODO 1: Refactor this Padding Widget into a separate Stateless Widget called CryptoCard, so we can create 3 of them, one for each cryptocurrency.
-          //TODO 2: You'll need to able to pass the selectedCurrency, value and cryptoCurrency to the constructor of this CryptoCard Widget.
-          //TODO 3: You'll need to use a Column Widget to contain the three CryptoCards.
-          Padding(
-            padding: EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0),
-            child: Card(
-              color: Colors.lightBlueAccent,
-              elevation: 5.0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
-                child: Text(
-                  '1 BTC = $value $selectedCurrency',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 20.0,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
+        children: foo(),
+      ),
+    );
+  }
+
+  Padding buildPadding(crypto_coin) {
+//    print(selectedCurrency);
+    return Padding(
+      padding: EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0),
+      child: Card(
+        color: Colors.lightBlueAccent,
+        elevation: 5.0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
+          child: Text(
+            '1 $crypto_coin = ${value_for_coin[crypto_coin]} $selectedCurrency',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 20.0,
+              color: Colors.white,
             ),
           ),
-          Container(
-            height: 150.0,
-            alignment: Alignment.center,
-            padding: EdgeInsets.only(bottom: 30.0),
-            color: Colors.lightBlue,
-            child: Platform.isIOS ? iOSPicker() : androidDropdown(),
-          ),
-        ],
+        ),
       ),
     );
   }
